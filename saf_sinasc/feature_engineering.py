@@ -2,6 +2,16 @@ import pandas as pd
 
 from saf_sinasc.config import compilations_path
 
+# Is there a convention name for this?
+def full_pipeline():
+    return (
+        load_negative_and_positive_df()
+        .pipe(drop_columns)
+        .pipe(ensure_dtypes)
+        .pipe(pre_process_enrich_columns)
+        .pipe(preprocess_inputation)
+        .pipe(get_dummies)
+    )
 
 def load_negative_and_positive_df():
     neutral_path = compilations_path/"shuf_5x_01.csv"
@@ -352,7 +362,23 @@ def pre_process_enrich_columns(df):
         .pipe(enrich_TPROBSON)
     )
 
+def feature_creation(df):
+    display(f"feature_creation: df shape: {df.shape}")
+
+    df = df.assign(
+        equal_CODMUNRES_and_CODMUNNASC = (df.CODMUNRES == df.CODMUNNASC).astype(int),
+        equal_CODMUNRES_and_CODMUNNATU = (df.CODMUNRES == df.CODMUNNATU).astype(int),
+        equal_CODMUNNASC_and_CODMUNNATU = (df.CODMUNNASC == df.CODMUNNATU).astype(int),
+    )
+
+    # TODO: might make logging a responsability from the main function later
+    display(f"feature_creation: df shape: {df.shape}")
+
+    return df
+
 def preprocess_inputation(df):
+    # Depends on: ver se eu vou precisar inputação mesmo,
+    #     provavelmente vou dar uma chance pra XGBOOST eu acho
     # TODO: tem coisa aqui que precisa fazer direito
     #     https://www.youtube.com/watch?v=m_qKhnaYZlc
     return df.fillna(
@@ -364,8 +390,9 @@ def preprocess_inputation(df):
             "QTDFILVIVO": 99,
             "QTDFILMORT": 99,
             "CODMUNRES": 999999,
-            "APGAR1": 99,
-            "APGAR5": 99,
+            "CODMUNNATU": 999999,
+            "APGAR1": 9, # TODO mudar
+            "APGAR5": 9, # TODO mudar
             "PESO": 999, # TODO mudar
             "SERIESCMAE": 99,
             "QTDGESTANT": 99,
@@ -481,7 +508,7 @@ def drop_columns(df):
         "IDANOMAL",
         "CODANOMAL",
         "NATURALMAE",
-        "CODMUNNATU",
+        # "CODMUNNATU", # might be uncommented later, but we need it for feature creation
         "ESTADO_DF",
         "ANO_DF",
     ]

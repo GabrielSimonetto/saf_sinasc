@@ -34,7 +34,7 @@ then
       echo "\$seed is empty, this program expects to be called yielding a value for seed";
       echo "try running something like:";
       echo "export seed=0; ./create_single_sample.sh";
-      exit;    
+      exit 1;    
 fi
 
 states_data="data/compilations/by_state";

@@ -1,25 +1,12 @@
 # Meant to be run with `ipython -i` for exploration 
 
-from saf_sinasc.feature_engineering import (
-    load_negative_and_positive_df, 
-    drop_columns, 
-    pre_process_enrich_columns, 
-    ensure_dtypes, 
-    preprocess_inputation,
-    get_dummies
-)
+from saf_sinasc.feature_engineering import full_pipeline
 
+import pandas as pd
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
-df1 = load_negative_and_positive_df()
-
-df2 = drop_columns(df1)
-df2 = ensure_dtypes(df2)
-
-df = pre_process_enrich_columns(df2)
-df = preprocess_inputation(df)
-df = get_dummies(df)
+df = full_pipeline()
 
 
 from sklearn.tree import DecisionTreeClassifier
