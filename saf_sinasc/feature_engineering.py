@@ -3,9 +3,9 @@ import pandas as pd
 from saf_sinasc.config import compilations_path
 
 # Is there a convention name for this?
-def full_pipeline():
+def full_pipeline(sample_path):
     return (
-        load_negative_and_positive_df()
+        load_negative_and_positive_df(sample_path)
         .pipe(drop_columns)
         .pipe(ensure_dtypes)
         .pipe(pre_process_enrich_columns)
@@ -13,8 +13,11 @@ def full_pipeline():
         .pipe(get_dummies)
     )
 
-def load_negative_and_positive_df():
-    neutral_path = compilations_path/"shuf_5x_01.csv"
+def load_negative_and_positive_df(neutral_path):
+    # TODO: hmm parameterizing neutral_path maybe implies parameterizing positives_path aswell.
+    # neutral_path = compilations_path/"shuf_5x_01.csv"
+
+    # Even more ghosts, at this point who knows if the neutral sample has the same origin as positives path
     positives_path = compilations_path/"only_positives_for_q86_and_q870_between_2010_and_2019.csv"
 
     # # TODO
@@ -28,8 +31,8 @@ def load_negative_and_positive_df():
     neutral_df['y'] = 0
     positives_df['y'] = 1
 
-    display(
-        f"positives_df.shape: {positives_df.shape}",
+    print(
+        f"positives_df.shape: {positives_df.shape}\n",
         f"neutral_df.shape: {neutral_df.shape}"
     )
     
@@ -363,7 +366,7 @@ def pre_process_enrich_columns(df):
     )
 
 def feature_creation(df):
-    display(f"feature_creation: df shape: {df.shape}")
+    print(f"feature_creation: df shape: {df.shape}")
 
     df = df.assign(
         equal_CODMUNRES_and_CODMUNNASC = (df.CODMUNRES == df.CODMUNNASC).astype(int),
@@ -372,7 +375,7 @@ def feature_creation(df):
     )
 
     # TODO: might make logging a responsability from the main function later
-    display(f"feature_creation: df shape: {df.shape}")
+    print(f"feature_creation: df shape: {df.shape}")
 
     return df
 
@@ -518,9 +521,9 @@ def drop_columns(df):
         errors="ignore" # if a column does not exist keep removing the others
     )
     
-    display(
-        f"remove_columns: df columns: {df.shape[1]}",
-        f"remove_columns: columns to drop: {len(columns)}",
+    print(
+        f"remove_columns: df columns: {df.shape[1]}\n",
+        f"remove_columns: columns to drop: {len(columns)}\n",
         f"remove_columns: output columns: {output.shape[1]}",
     )
     
