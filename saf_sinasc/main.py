@@ -9,7 +9,12 @@ pd.set_option('display.max_columns', None)
 
 
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
+
+from xgboost import XGBClassifier
+
+from statistics import mean, median
 
 
 # TODO: remove ghosts, insert in a .env and make .sh and .py files use it.
@@ -27,25 +32,78 @@ from sklearn.model_selection import cross_val_score
 # def test():
 # def train_test():
 
-results = []
-for seed in range(5):
-    sample_path = f"{SAMPLES_PATH}/5x_neutral_entries_{seed}.csv"  
-    df = full_pipeline(sample_path)
 
+def run_models(run_dt, run_rf, run_xgb):
+    assert run_dt or run_rf or run_xgb, "You must choose which models will be run"
+
+    results = {"dt": [], "rf": [], "xgb": []}
+
+    for seed in range(5):
+        sample_path = f"{SAMPLES_PATH}/5x_neutral_entries_{seed}.csv"
+        df = full_pipeline(sample_path)
+
+        y = df["y"]
+        X = df.drop(columns=["y"])
+
+        print("\n")
+
+        if run_dt:
+            score = run_decision_tree(X, y)
+            results["dt"].append(score)
+
+        if run_rf:
+            score = run_random_forest(X, y)
+            results["rf"].append(score)
+
+        if run_xgb:
+            score = run_xgboost(X, y)
+            results["xgb"].append(score)
+
+        print("\n")
+        del df
+
+    print(f"""results dt: {results["dt"]}""")
+    print(f"""results rf: {results["rf"]}""")
+    print(f"""results xgb: {results["xgb"]}""")
+
+    show_results(results["dt"], "dt")
+    show_results(results["rf"], "rf")
+    show_results(results["xgb"], "xgb")
+
+
+def take_metrics(clf, X, y):
+    return cross_val_score(clf, X, y, cv=10, scoring='f1').mean()
+
+def run_decision_tree(X, y):
     clf = DecisionTreeClassifier(random_state=0)
+    score = take_metrics(clf, X, y)
+    print(f"run_dt score: {score}")
+    return score
 
-    y = df["y"]
-    X = df.drop(columns=["y"])
+def run_random_forest(X, y):
+    clf = RandomForestClassifier(random_state=0)
+    score = take_metrics(clf, X, y)
+    print(f"run_rf score: {score}")
+    return score
 
-    score = cross_val_score(clf, X, y, cv=10, scoring='f1').mean()
-    print(score, "\n")
+def run_xgboost(X, y):
+    bst = XGBClassifier(random_state=0,
+        n_estimators=2,
+        max_depth=2,
+        learning_rate=1,
+        objective='binary:logistic'
+    )
 
-    results.append(score)
+    score = take_metrics(bst, X, y)
 
-print(f"results: {results}")
+    print(f"run_xgb score: {score}")
+    return score
 
-from statistics import mean, median 
+def show_results(results, model_name):
+    print(f"mean {model_name}: {mean(results)}")
+    print(f"median {model_name}: {median(results)}")
 
-print(f"mean: {mean(results)}")
-print(f"median: {median(results)}")
 
+run_models(
+    run_dt=True, run_rf=True, run_xgb=True
+)
