@@ -28,11 +28,29 @@ pd.set_option('display.max_columns', None)
 # def train_test():
 
 
-def run_models(run_dt, run_rf, run_xgb):
-    assert run_dt or run_rf or run_xgb, "You must choose which models will be run"
+def default_run_models():
+    dt = DecisionTreeClassifier(random_state=0)
 
-    results = {"dt": [], "rf": [], "xgb": []}
+    rf = RandomForestClassifier(random_state=0)
 
+    bst = XGBClassifier(random_state=0,
+                        n_estimators=2,
+                        max_depth=2,
+                        learning_rate=1,
+                        objective='binary:logistic'
+                        )
+
+    return run_models(
+        [("dt", dt), ("rf", rf), ("bst", bst)]
+    )
+
+
+def run_models(model_list):
+    assert len(model_list) != 0, "You must insert which models will be run"
+
+    results = {model_name: [] for model_name, _ in model_list}
+
+    # TODO: ask range to user
     for seed in range(5):
         sample_path = f"{SAMPLES_PATH}/5x_neutral_entries_{seed}.csv"
         df = full_pipeline(sample_path)
@@ -42,28 +60,19 @@ def run_models(run_dt, run_rf, run_xgb):
 
         print("\n")
 
-        if run_dt:
-            score = run_decision_tree(X, y)
-            results["dt"].append(score)
-
-        if run_rf:
-            score = run_random_forest(X, y)
-            results["rf"].append(score)
-
-        if run_xgb:
-            score = run_xgboost(X, y)
-            results["xgb"].append(score)
+        for model_name, model in model_list:
+            score = take_metrics(model, X, y)
+            print(f"run_{model_name} score: {score}")
+            results[model_name].append(score)
 
         print("\n")
         del df
 
-    print(f"""results dt: {results["dt"]}""")
-    print(f"""results rf: {results["rf"]}""")
-    print(f"""results xgb: {results["xgb"]}""")
+    for name, metric_values in results.items():
+        print(f"results {name}: {metric_values}")
 
-    show_results(results["dt"], "dt")
-    show_results(results["rf"], "rf")
-    show_results(results["xgb"], "xgb")
+    for name, metric_values in results.items():
+        show_results(name, metric_values)
 
 
 def take_metrics(clf, X, y):
@@ -100,7 +109,7 @@ def run_xgboost(X, y):
 # TODO: metrics per model func + aggregating metrics func
 
 
-def show_results(results, model_name):
+def show_results(model_name, results):
     print(f"mean {model_name}: {mean(results)}")
     print(f"median {model_name}: {median(results)}")
 

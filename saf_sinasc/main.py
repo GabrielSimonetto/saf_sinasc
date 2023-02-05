@@ -1,6 +1,6 @@
 # Meant to be run with `ipython -i` for exploration
 
-from saf_sinasc.models import run_models
+from saf_sinasc.models import default_run_models
 
 import pandas as pd
 pd.set_option('display.max_rows', None)
@@ -23,6 +23,4 @@ pd.set_option('display.max_columns', None)
 # def train_test():
 
 
-run_models(
-    run_dt=True, run_rf=True, run_xgb=True
-)
+default_run_models()
