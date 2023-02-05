@@ -19,36 +19,45 @@ pd.set_option('display.max_columns', None)
 # TODO: I can use "seed" here for congruency, but here it is just a version (seed_version? version_seed?)
 # sample_paths = [f"data/compilations/samples/5x_neutral_entries_{seed}.csv" for seed in range(5)]
 
-# TODO: maybe allows for coprehensions,
-#        but I still need to load and transform
-#        don't know if I want another full_process_AGAIN()
-# results = [full_process_AGAIN(i) for i in range(5)]
-# def train():
-# def test():
-# def train_test():
+class Model:
+    def __init__(self, name, model):
+        self.name = name
+        self.model = model
+        self.results = []
+
+    def run(self, X, y):
+        score = self.take_metrics(X, y)
+        print(f"{self.name} score: {score}")
+        self.results.append(score)
+
+    def show_results(self):
+        print(f"{self.name} results: {self.results}\n")
+
+    def take_metrics(self, X, y):
+        return cross_val_score(self.model, X, y, cv=10, scoring='f1').mean()
+
+    def aggregate_results(self):
+        print(f"mean {self.name}: {mean(self.results)}")
+        print(f"median {self.name}: {median(self.results)}\n")
 
 
 def default_run_models():
-    dt = DecisionTreeClassifier(random_state=0)
-
-    rf = RandomForestClassifier(random_state=0)
-
-    bst = XGBClassifier(random_state=0,
-                        n_estimators=2,
-                        max_depth=2,
-                        learning_rate=1,
-                        objective='binary:logistic'
-                        )
+    dt = Model("DT", DecisionTreeClassifier(random_state=0))
+    rf = Model("RF", RandomForestClassifier(random_state=0))
+    xgb = Model("XGB", XGBClassifier(random_state=0,
+                                     n_estimators=2,
+                                     max_depth=2,
+                                     learning_rate=1,
+                                     objective='binary:logistic'
+                                     ))
 
     return run_models(
-        [("dt", dt), ("rf", rf), ("bst", bst)]
+        [dt, rf, xgb]
     )
 
 
-def run_models(model_list):
-    assert len(model_list) != 0, "You must insert which models will be run"
-
-    results = {model_name: [] for model_name, _ in model_list}
+def run_models(models):
+    assert len(models) != 0, "You must insert which models will be run"
 
     # TODO: ask range to user
     for seed in range(5):
@@ -58,62 +67,15 @@ def run_models(model_list):
         y = df["y"]
         X = df.drop(columns=["y"])
 
-        print("\n")
-
-        for model_name, model in model_list:
-            score = take_metrics(model, X, y)
-            print(f"run_{model_name} score: {score}")
-            results[model_name].append(score)
+        for model in models:
+            model.run(X, y)
 
         print("\n")
+
         del df
 
-    for name, metric_values in results.items():
-        print(f"results {name}: {metric_values}")
+    for model in models:
+        model.show_results()
 
-    for name, metric_values in results.items():
-        show_results(name, metric_values)
-
-
-def take_metrics(clf, X, y):
-    return cross_val_score(clf, X, y, cv=10, scoring='f1').mean()
-
-
-def run_decision_tree(X, y):
-    clf = DecisionTreeClassifier(random_state=0)
-    score = take_metrics(clf, X, y)
-    print(f"run_dt score: {score}")
-    return score
-
-
-def run_random_forest(X, y):
-    clf = RandomForestClassifier(random_state=0)
-    score = take_metrics(clf, X, y)
-    print(f"run_rf score: {score}")
-    return score
-
-
-def run_xgboost(X, y):
-    bst = XGBClassifier(random_state=0,
-                        n_estimators=2,
-                        max_depth=2,
-                        learning_rate=1,
-                        objective='binary:logistic'
-                        )
-
-    score = take_metrics(bst, X, y)
-
-    print(f"run_xgb score: {score}")
-    return score
-
-# TODO: metrics per model func + aggregating metrics func
-
-
-def show_results(model_name, results):
-    print(f"mean {model_name}: {mean(results)}")
-    print(f"median {model_name}: {median(results)}")
-
-
-# run_models(
-#     run_dt=True, run_rf=True, run_xgb=True
-# )
+    for model in models:
+        model.aggregate_results()
