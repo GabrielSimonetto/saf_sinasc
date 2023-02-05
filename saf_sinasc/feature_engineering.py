@@ -3,22 +3,33 @@ import pandas as pd
 from saf_sinasc.config import compilations_path
 
 # Is there a convention name for this?
+
+
 def full_pipeline(sample_path):
+    """ full_pipeline
+
+    pre_process_enrich_columns targets categorical columns
+    preprocess_inputation targets numerical columns
+    """
+
     return (
         load_negative_and_positive_df(sample_path)
         .pipe(drop_columns)
         .pipe(ensure_dtypes)
         .pipe(pre_process_enrich_columns)
         .pipe(preprocess_inputation)
+        .pipe(feature_engineering)
         .pipe(get_dummies)
     )
+
 
 def load_negative_and_positive_df(neutral_path):
     # TODO: hmm parameterizing neutral_path maybe implies parameterizing positives_path aswell.
     # neutral_path = compilations_path/"shuf_5x_01.csv"
 
     # Even more ghosts, at this point who knows if the neutral sample has the same origin as positives path
-    positives_path = compilations_path/"only_positives_for_q86_and_q870_between_2010_and_2019.csv"
+    positives_path = compilations_path / \
+        "only_positives_for_q86_and_q870_between_2010_and_2019.csv"
 
     # # TODO
     # assert False, "Descobrindo como diabo coercionar isso em tempo de leitura"
@@ -35,7 +46,7 @@ def load_negative_and_positive_df(neutral_path):
         f"positives_df.shape: {positives_df.shape}\n",
         f"neutral_df.shape: {neutral_df.shape}"
     )
-    
+
     return pd.concat([positives_df, neutral_df])
 
 
@@ -48,7 +59,8 @@ def ensure_dtypes(df):
 
 def treat_nan_and_map_values(df, col, col_map, nan_cat=9.0):
     return df.assign(**{col: lambda df: pd.to_numeric(df[col]).fillna(nan_cat).map(col_map)})
-    
+
+
 def enrich_LONASC(df):
     col = "LOCNASC"
     nan_cat = 5.0
@@ -59,8 +71,9 @@ def enrich_LONASC(df):
         4: "Outros",
         5: "Ignorado",
     }
-    
+
     return treat_nan_and_map_values(df, col, LOCNASC_map, nan_cat)
+
 
 def enrich_ESTCIVMAE(df):
     col = "ESTCIVMAE"
@@ -73,8 +86,9 @@ def enrich_ESTCIVMAE(df):
         5: 'União consensual',
         9: 'Ignorado',
     }
-    
+
     return treat_nan_and_map_values(df, col, ESTCIVMAE_map, nan_cat)
+
 
 def enrich_ESCMAE(df):
     col = "ESCMAE"
@@ -87,8 +101,9 @@ def enrich_ESCMAE(df):
         5: "12 e mais",
         9: "Ignorado",
     }
-    
+
     return treat_nan_and_map_values(df, col, ESCMAE_map, nan_cat)
+
 
 def enrich_ESCMAEAGR1(df):
     col = "ESCMAEAGR1"
@@ -108,8 +123,9 @@ def enrich_ESCMAEAGR1(df):
         11: "Fundamental II Incompleto ou Inespecífico",
         12: "Ensino Médio Incompleto ou Inespecífico",
     }
-    
+
     return treat_nan_and_map_values(df, col, ESCMAEAGR1_map, nan_cat)
+
 
 def enrich_GESTACAO(df):
     col = "GESTACAO"
@@ -123,9 +139,8 @@ def enrich_GESTACAO(df):
         6: "42 semanas e mais",
         9: "Ignorado",
     }
-    
-    return treat_nan_and_map_values(df, col, GESTACAO_map, nan_cat)
 
+    return treat_nan_and_map_values(df, col, GESTACAO_map, nan_cat)
 
 
 def enrich_GRAVIDEZ(df):
@@ -137,8 +152,9 @@ def enrich_GRAVIDEZ(df):
         2: "Dupla",
         3: "Tripla ou mais",
     }
-    
+
     return treat_nan_and_map_values(df, col, GRAVIDEZ_map, nan_cat)
+
 
 def enrich_PARTO(df):
     col = "PARTO"
@@ -148,8 +164,9 @@ def enrich_PARTO(df):
         1: "Vaginal",
         2: "Cesáreo",
     }
-    
+
     return treat_nan_and_map_values(df, col, PARTO_map, nan_cat)
+
 
 def enrich_CONSULTAS(df):
     col = "CONSULTAS"
@@ -164,6 +181,7 @@ def enrich_CONSULTAS(df):
 
     return treat_nan_and_map_values(df, col, CONSULTAS_map, nan_cat)
 
+
 def enrich_SEXO(df):
     col = "SEXO"
     nan_cat = 9.0
@@ -173,14 +191,15 @@ def enrich_SEXO(df):
         2: "Feminino",
         9: "Ignorado",
     }
-    
+
     # It's better to convert to numeric just to be type safe
     df = df.assign(**{
-            "SEXO": lambda df: pd.to_numeric(df["SEXO"].replace({"M": 1, "F": 2}), errors='coerce')
-        }
+        "SEXO": lambda df: pd.to_numeric(df["SEXO"].replace({"M": 1, "F": 2}), errors='coerce')
+    }
     )
-    
+
     return treat_nan_and_map_values(df, col, SEXO_map, nan_cat)
+
 
 def enrich_RACACOR(df):
     col = "RACACOR"
@@ -193,8 +212,9 @@ def enrich_RACACOR(df):
         5: "Indígena",
         9: "Ignorado",
     }
-    
+
     return treat_nan_and_map_values(df, col, RACACOR_map, nan_cat)
+
 
 def enrich_RACACORMAE(df):
     col = "RACACORMAE"
@@ -207,8 +227,9 @@ def enrich_RACACORMAE(df):
         5: "Indígena",
         9: "Ignorado",
     }
-    
+
     return treat_nan_and_map_values(df, col, RACACORMAE_map, nan_cat)
+
 
 def enrich_STTRABPART(df):
     col = "STTRABPART"
@@ -219,8 +240,9 @@ def enrich_STTRABPART(df):
         3: "Não se aplica",
         9: "Ignorado",
     }
-    
+
     return treat_nan_and_map_values(df, col, STTRABPART_map, nan_cat)
+
 
 def enrich_STCESPARTO(df):
     col = "STCESPARTO"
@@ -231,8 +253,9 @@ def enrich_STCESPARTO(df):
         3: "Não se aplica",
         9: "Ignorado",
     }
-    
+
     return treat_nan_and_map_values(df, col, STCESPARTO_map, nan_cat)
+
 
 def enrich_STDNEPIDEM(df):
     col = "STDNEPIDEM"
@@ -242,8 +265,9 @@ def enrich_STDNEPIDEM(df):
         1: "Nao",
         9: "Ignorado",
     }
-    
+
     return treat_nan_and_map_values(df, col, STDNEPIDEM_map, nan_cat)
+
 
 def enrich_STDNNOVA(df):
     col = "STDNNOVA"
@@ -253,8 +277,9 @@ def enrich_STDNNOVA(df):
         1: "Nao",
         9: "Ignorado",
     }
-    
+
     return treat_nan_and_map_values(df, col, STDNNOVA_map, nan_cat)
+
 
 def enrich_TPMETESTIM(df):
     col = "TPMETESTIM"
@@ -264,8 +289,9 @@ def enrich_TPMETESTIM(df):
         2: "Outro método",
         9: "Ignorado",
     }
-    
+
     return treat_nan_and_map_values(df, col, TPMETESTIM_map, nan_cat)
+
 
 def enrich_TPAPRESENT(df):
     col = "TPAPRESENT"
@@ -276,8 +302,9 @@ def enrich_TPAPRESENT(df):
         3: "Transversa",
         9: "Ignorado",
     }
-    
+
     return treat_nan_and_map_values(df, col, TPAPRESENT_map, nan_cat)
+
 
 def enrich_TPNASCASSI(df):
     col = "TPNASCASSI"
@@ -289,8 +316,9 @@ def enrich_TPNASCASSI(df):
         4: "Outros",
         9: "Ignorado",
     }
-    
+
     return treat_nan_and_map_values(df, col, TPNASCASSI_map, nan_cat)
+
 
 def enrich_TPFUNCRESP(df):
     col = "TPFUNCRESP"
@@ -303,8 +331,9 @@ def enrich_TPFUNCRESP(df):
         5: "Outros",
         9: "Ignorado",
     }
-    
+
     return treat_nan_and_map_values(df, col, TPFUNCRESP_map, nan_cat)
+
 
 def enrich_TPDOCRESP(df):
     col = "TPDOCRESP"
@@ -316,8 +345,9 @@ def enrich_TPDOCRESP(df):
         4: "RG",
         5: "CPF",
     }
-    
+
     return treat_nan_and_map_values(df, col, TPDOCRESP_map, nan_cat)
+
 
 def enrich_TPROBSON(df):
     col = "TPROBSON"
@@ -335,11 +365,12 @@ def enrich_TPROBSON(df):
         10: "10",
         11: "Ignorado",
     }
-    
+
     return treat_nan_and_map_values(df, col, TPROBSON_map, nan_cat)
 
 
 def pre_process_enrich_columns(df):
+    """Targets categorical values"""
     return (
         df
         .pipe(enrich_LONASC)
@@ -365,19 +396,24 @@ def pre_process_enrich_columns(df):
         .pipe(enrich_TPROBSON)
     )
 
-def feature_creation(df):
-    print(f"feature_creation: df shape: {df.shape}")
+
+def feature_engineering(df):
+    print(f"feature_engineering: df shape: {df.shape}")
 
     df = df.assign(
-        equal_CODMUNRES_and_CODMUNNASC = (df.CODMUNRES == df.CODMUNNASC).astype(int),
-        equal_CODMUNRES_and_CODMUNNATU = (df.CODMUNRES == df.CODMUNNATU).astype(int),
-        equal_CODMUNNASC_and_CODMUNNATU = (df.CODMUNNASC == df.CODMUNNATU).astype(int),
+        equal_CODMUNRES_and_CODMUNNASC=(
+            df.CODMUNRES == df.CODMUNNASC).astype(int),
+        equal_CODMUNRES_and_CODMUNNATU=(
+            df.CODMUNRES == df.CODMUNNATU).astype(int),
+        equal_CODMUNNASC_and_CODMUNNATU=(
+            df.CODMUNNASC == df.CODMUNNATU).astype(int),
     )
 
     # TODO: might make logging a responsability from the main function later
-    print(f"feature_creation: df shape: {df.shape}")
+    print(f"feature_engineering: df shape: {df.shape}")
 
     return df
+
 
 def preprocess_inputation(df):
     # Depends on: ver se eu vou precisar inputação mesmo,
@@ -388,15 +424,15 @@ def preprocess_inputation(df):
         {
             "CODESTAB": 99999999.,
             "CODMUNNASC": 999999,
-            "IDADEMAE": 99, # TODO mudar
+            "IDADEMAE": 99,  # TODO mudar
             "CODOCUPMAE": 999999.0,
             "QTDFILVIVO": 99,
             "QTDFILMORT": 99,
             "CODMUNRES": 999999,
             "CODMUNNATU": 999999,
-            "APGAR1": 9, # TODO mudar
-            "APGAR5": 9, # TODO mudar
-            "PESO": 999, # TODO mudar
+            "APGAR1": 9,  # TODO mudar
+            "APGAR5": 9,  # TODO mudar
+            "PESO": 999,  # TODO mudar
             "SERIESCMAE": 99,
             "QTDGESTANT": 99,
             "QTDPARTNOR": 99,
@@ -405,11 +441,12 @@ def preprocess_inputation(df):
             "SEMAGESTAC": 38,
             "CONSPRENAT": 9,
             "MESPRENAT": 99,
-            "ESCMAE2010": 9, # acho que isso aqui devia ser categorico
+            "ESCMAE2010": 9,  # acho que isso aqui devia ser categorico
             "CODUFNATU": 99,
             "CODMUNCART": 999999,
         }
     )
+
 
 def drop_columns(df):
     """
@@ -421,10 +458,10 @@ def drop_columns(df):
     IL - Informação Limitada: 
             ex: coluna com só um valor,
               : coluna sem valor semantico (codigos de cartorio)
-    
+
     RACACORN: ND, NAN
     RACACOR_RN: ND, NAN
-    
+
     CODCART: IL
     NUMREGCART: IL
     DTREGCART: IL
@@ -459,15 +496,15 @@ def drop_columns(df):
                 da pra enriquecer elas depois,
                 e nao tao eficiente
 
-        
+
         "IDANOMAL", "CODANOMAL": Coluna relacionada a anomalias congênitas,
                         é considerada >bleeding info< nesse problema
                             (consertar com termo tecnico depois.)
-                            
+
                         até dá pra criar a feature de
                             TEM_OUTRA_ANOMALIA_CONGENITA
                             mas parece um adicional opcional
-                            
+
         "NATURALMAE": se a mae é do brasil ou estrangeira,
                         parece usar codigos diferentes para o brasil,
                         como se fosse uma regiao socioeconomica,
@@ -475,17 +512,17 @@ def drop_columns(df):
                         considera-se essa coluna como reduntante por enquanto.
 
     # Menção honrosa de colunas que NAO VAO ser removidas:
-    
+
         CODESTAB, CODMUNNASC: IL,
               ao usar uma estrategia de sampling,
               é sempre altamente subrepresentada,
               ainda assim... certos estabelecimentos vao ter alta incidencia
               talvez simplesmente por serem efetivos em diagnosticar SAF
-              
+
               vai ser mantido só pra caso a gente use o dataset inteiro depois.
     """
-    
-    columns = [   
+
+    columns = [
         "RACACORN",
         "RACACOR_RN",
         "CODCART",
@@ -515,19 +552,20 @@ def drop_columns(df):
         "ESTADO_DF",
         "ANO_DF",
     ]
-    
+
     output = df.drop(
         columns=columns,
-        errors="ignore" # if a column does not exist keep removing the others
+        errors="ignore"  # if a column does not exist keep removing the others
     )
-    
+
     print(
         f"remove_columns: df columns: {df.shape[1]}\n",
         f"remove_columns: columns to drop: {len(columns)}\n",
         f"remove_columns: output columns: {output.shape[1]}",
     )
-    
+
     return output
+
 
 def get_dummies(df):
 
@@ -535,7 +573,7 @@ def get_dummies(df):
         "LOCNASC",
         "ESTCIVMAE",
         "ESCMAE",
-        "ESCMAEAGR1", # nao achado em algumas iterações?
+        "ESCMAEAGR1",  # nao achado em algumas iterações?
         "GESTACAO",
         "GRAVIDEZ",
         "PARTO",
@@ -552,8 +590,8 @@ def get_dummies(df):
         "TPNASCASSI",
         "TPFUNCRESP",
         "TPDOCRESP",
-        "TPROBSON", # ver aquele link la
-                # https://www.arca.fiocruz.br/bitstream/icict/29751/2/CLASSIFICA%C3%87%C3%83O%20DE%20ROBSON.pdf
+        "TPROBSON",  # ver aquele link la
+        # https://www.arca.fiocruz.br/bitstream/icict/29751/2/CLASSIFICA%C3%87%C3%83O%20DE%20ROBSON.pdf
         "ESTADO",
     ]
     DUMMIES_LIST = ENRICH_CAT_COLUMNS
@@ -571,4 +609,3 @@ def get_dummies(df):
 
 # TODO: descobrir um jeito mais simples de documentar essas meta informações das colunas?
 #        da pra ja ir escrevendo no artigo mesmo acho
-
