@@ -9,7 +9,7 @@ def full_pipeline(sample_path):
     """ full_pipeline
 
     pre_process_enrich_columns targets categorical columns
-    preprocess_inputation targets numerical columns
+    preprocess_imputation targets numerical columns
     """
 
     return (
@@ -17,7 +17,7 @@ def full_pipeline(sample_path):
         .pipe(drop_columns)
         .pipe(ensure_dtypes)
         .pipe(pre_process_enrich_columns)
-        .pipe(preprocess_inputation)
+        .pipe(preprocess_imputation)
         .pipe(feature_engineering)
         .pipe(get_dummies)
     )
@@ -415,37 +415,39 @@ def feature_engineering(df):
     return df
 
 
-def preprocess_inputation(df):
+def preprocess_imputation(df):
     # Depends on: ver se eu vou precisar inputação mesmo,
     #     provavelmente vou dar uma chance pra XGBOOST eu acho
     # TODO: tem coisa aqui que precisa fazer direito
     #     https://www.youtube.com/watch?v=m_qKhnaYZlc
-    return df.fillna(
-        {
-            "CODESTAB": 99999999.,
-            "CODMUNNASC": 999999,
-            "IDADEMAE": 99,  # TODO mudar
-            "CODOCUPMAE": 999999.0,
-            "QTDFILVIVO": 99,
-            "QTDFILMORT": 99,
-            "CODMUNRES": 999999,
-            "CODMUNNATU": 999999,
-            "APGAR1": 9,  # TODO mudar
-            "APGAR5": 9,  # TODO mudar
-            "PESO": 999,  # TODO mudar
-            "SERIESCMAE": 99,
-            "QTDGESTANT": 99,
-            "QTDPARTNOR": 99,
-            "QTDPARTCES": 99,
-            "IDADEPAI": 99,
-            "SEMAGESTAC": 38,
-            "CONSPRENAT": 9,
-            "MESPRENAT": 99,
-            "ESCMAE2010": 9,  # acho que isso aqui devia ser categorico
-            "CODUFNATU": 99,
-            "CODMUNCART": 999999,
-        }
-    )
+
+    # TODO: agora sim eu posso acertar o config e passar a lista toda aqui maybe?
+    selection_list = [
+        "CODESTAB",
+        "CODMUNNASC",
+        "IDADEMAE",  # TODO mudar
+        "CODOCUPMAE",
+        "QTDFILVIVO",
+        "QTDFILMORT",
+        "CODMUNRES",
+        "CODMUNNATU",
+        "APGAR1",  # TODO mudar
+        "APGAR5",  # TODO mudar
+        "PESO",  # TODO mudar
+        "SERIESCMAE",
+        "QTDGESTANT",
+        "QTDPARTNOR",
+        "QTDPARTCES",
+        "IDADEPAI",
+        "SEMAGESTAC",
+        "CONSPRENAT",
+        "MESPRENAT",
+        "ESCMAE2010",  # acho que isso aqui devia ser categorico
+        "CODUFNATU",
+        "CODMUNCART",
+    ]
+
+    return df.fillna(df[selection_list].median())
 
 
 def drop_columns(df):

@@ -1,5 +1,5 @@
 
-from statistics import mean, median
+from statistics import mean, median, stdev
 from xgboost import XGBClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestClassifier
@@ -27,18 +27,20 @@ class Model:
 
     def run(self, X, y):
         score = self.take_metrics(X, y)
-        print(f"{self.name} score: {score}")
+        print(f"{self.name} score: {score:.2f}")
         self.results.append(score)
 
     def show_results(self):
-        print(f"{self.name} results: {self.results}\n")
+        print(
+            f"{self.name} results: {[ '%.2f' % num for num in self.results ]}\n")
 
     def take_metrics(self, X, y):
         return cross_val_score(self.model, X, y, cv=10, scoring='f1').mean()
 
     def aggregate_results(self):
-        print(f"mean {self.name}: {mean(self.results)}")
-        print(f"median {self.name}: {median(self.results)}\n")
+        print(f"mean {self.name}: {mean(self.results):.2f}")
+        print(f"median {self.name}: {median(self.results):.2f}")
+        print(f"stdev {self.name}: {stdev(self.results):.2f}\n")
 
 
 def default_run_models():
@@ -61,6 +63,8 @@ def run_models(models):
 
     # TODO: ask range to user
     for seed in range(5):
+        print(f"running seed {seed}")
+
         sample_path = f"{SAMPLES_PATH}/5x_neutral_entries_{seed}.csv"
         df = full_pipeline(sample_path)
 
