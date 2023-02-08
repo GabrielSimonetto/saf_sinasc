@@ -37,14 +37,15 @@ then
       exit 1;    
 fi
 
-states_data="data/compilations/by_state";
-output_path="data/compilations/samples/5x_neutral_entries_$seed.csv"; # TODO: pad 2 zeros to the left
+states_data="../data/compilations/by_state";
+output_path="../data/compilations/samples/5x_neutral_entries_$seed.csv"; # TODO: pad 2 zeros to the left
 
 
 # first one creates the file with the header
 # all of the other must concat into it with >>
 # --random-source=<(yes $seed) fixes the seed 0 making our runs deterministic
 
+# TODO: allow multiplier on stratified constant (19 * 5 instead of 95)
 head -n 1  "$states_data/AC_2010_2019.csv"  > "$output_path";
 tail -n +2 "$states_data/AC_2010_2019.csv" | shuf --random-source=<(yes $seed) -n 95   >> "$output_path";
 tail -n +2 "$states_data/AL_2010_2019.csv" | shuf --random-source=<(yes $seed) -n 115  >> "$output_path";
