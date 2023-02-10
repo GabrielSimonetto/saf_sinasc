@@ -14,13 +14,10 @@ import time
 
 from subprocess import check_output
 from glob import glob
-from pathlib import Path
+
+from saf_sinasc.scripts.config import RAW_PATH, SCRIPTS_OUTPUT_PATH
 
 start_time = time.time()
-
-DATA_PATH = Path(__file__).resolve().parent.parent.joinpath("data")
-RAW_PATH = DATA_PATH / "raw"
-SCRIPTS_OUTPUT_PATH = DATA_PATH / "scripts"
 
 assert RAW_PATH.exists()
 assert SCRIPTS_OUTPUT_PATH.exists()
