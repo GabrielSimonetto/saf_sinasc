@@ -1,11 +1,11 @@
 
 from statistics import mean, median, stdev
 from xgboost import XGBClassifier
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, cross_validate
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from saf_sinasc.feature_engineering import full_pipeline
-from saf_sinasc.config import SAMPLES_PATH
+from saf_sinasc.config import SAMPLES_PATH, METRICS
 
 import pandas as pd
 pd.set_option('display.max_rows', None)
@@ -23,27 +23,59 @@ class Model:
     def __init__(self, name, model):
         self.name = name
         self.model = model
-        self.results = []
+        self.results = {metric: [] for metric in METRICS}
+
+    def __str__(self):
+        return f"Model({self.name})"
+
+    def __repr__(self):
+        return f"Model({self.name})"
 
     def run(self, X, y):
-        score = self.take_metrics(X, y)
-        print(f"{self.name} score: {score:.2f}")
-        self.results.append(score)
+        scores = self.take_metrics(X, y)
+        # TODO use logging instead of print in order to configure verbosity
+        # print(f"{self.name} scores: {score:.2f}")
+
+        for metric in METRICS:
+            self.results[metric].append(scores[metric])
+
+        # self.results.append(score)
 
     def show_results(self):
-        print(
-            f"{self.name} results: {[ '%.2f' % num for num in self.results ]}\n")
+        # TODO: precision formatting should be handled only once, instead of take_metrics everywhere
+        # either on input, either as a class that knows how to print itself already formatted.
 
-    def take_metrics(self, X, y):
-        return cross_val_score(self.model, X, y, cv=10, scoring='f1').mean()
+        print("Results:")
+        for metric in METRICS:
+            print(
+                f"{self.name:>4} {metric:>8}: {[ '%.2f' % num for num in self.results[metric] ]}".ljust(50))
+
+    def take_metrics(self, X, y, metrics=METRICS):
+        # sklearn.metrics.roc_auc_score(y_true, y_score)
+        # return cross_val_score(self.model, X, y, cv=10, scoring='f1').mean()
+
+        assert len(METRICS) > 1, "Needs functionality for only one metric"
+        # TODO: if > 2 metrics, cross_validate produces test_{metric} names
+        #       if ==1 ; it simplifies to test_score, which breaks the current code.
+
+        cv_results = cross_validate(self.model, X, y, cv=10, scoring=metrics)
+
+        return {k.lstrip('test_'): v.mean() for k, v in cv_results.items() if k.startswith('test_')}
 
     def aggregate_results(self):
-        print(f"mean {self.name}: {mean(self.results):.2f}")
-        print(f"median {self.name}: {median(self.results):.2f}")
-        print(f"stdev {self.name}: {stdev(self.results):.2f}\n")
+        print()
+        for metric in METRICS:
+            print(
+                f"  mean {self.name:>4} {metric:>8}: {mean(self.results[metric]):.2f}".ljust(50))
+            print(
+                f"median {self.name:>4} {metric:>8}: {median(self.results[metric]):.2f}".ljust(50))
+
+            if len(self.results[metric]) > 1:
+                print(
+                    f" stdev {self.name:>4} {metric:>8}: {stdev(self.results[metric]):.2f}".ljust(50))
 
 
-def default_run_models():
+def default_run_models(num_samples=5):
     dt = Model("DT", DecisionTreeClassifier(random_state=0))
     rf = Model("RF", RandomForestClassifier(random_state=0))
     xgb = Model("XGB", XGBClassifier(random_state=0,
@@ -54,15 +86,15 @@ def default_run_models():
                                      ))
 
     return run_models(
-        [dt, rf, xgb]
+        [dt, rf, xgb], num_samples
     )
 
 
-def run_models(models):
+def run_models(models, num_samples=5):
     assert len(models) != 0, "You must insert which models will be run"
 
     # TODO: ask range to user
-    for seed in range(5):
+    for seed in range(num_samples):
         print(f"running seed {seed}")
 
         sample_path = f"{SAMPLES_PATH}/5x_neutral_entries_{seed}.csv"
@@ -83,3 +115,6 @@ def run_models(models):
 
     for model in models:
         model.aggregate_results()
+
+    # Will hold only the last model, but all the metrics.
+    return models

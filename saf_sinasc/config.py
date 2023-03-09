@@ -2,12 +2,11 @@ from pathlib import Path
 
 DATAPATH = Path(__file__).resolve().parent.parent.joinpath("data")
 compilations_path = DATAPATH/"compilations"
-sample_lists_path = compilations_path/"sample_lists" # TODO: Deprecated?
-SAMPLES_PATH = compilations_path/"samples" # TODO: make everyone uppercase?
+sample_lists_path = compilations_path/"sample_lists"  # TODO: Deprecated?
+SAMPLES_PATH = compilations_path/"samples"  # TODO: make everyone uppercase?
 by_state_path = compilations_path/"by_state"
 
-
-
+METRICS = ["f1", "roc_auc"]
 
 # ESQUECE USAR ESSAS LISTAS NO CODIGO POR ENQUANTO
 #    Provavelmente eh mais saudavel eu criar elas conforme eu vejo
@@ -27,7 +26,7 @@ NON_ENRICH_COLUMNS = [
     "CODUFNATU",
     "ESTADO",
     "LOCNASC",
-    "CODOCUPMAE", # create "other" for bottom 10%
+    "CODOCUPMAE",  # create "other" for bottom 10%
 ]
 
 ENRICH_CAT_COLUMNS = [
@@ -51,8 +50,8 @@ ENRICH_CAT_COLUMNS = [
     "TPNASCASSI",
     "TPFUNCRESP",
     "TPDOCRESP",
-    "TPROBSON", # ver aquele link la
-            # https://www.arca.fiocruz.br/bitstream/icict/29751/2/CLASSIFICA%C3%87%C3%83O%20DE%20ROBSON.pdf
+    "TPROBSON",  # ver aquele link la
+    # https://www.arca.fiocruz.br/bitstream/icict/29751/2/CLASSIFICA%C3%87%C3%83O%20DE%20ROBSON.pdf
 ]
 
 # continuous significa tanto:
@@ -84,7 +83,7 @@ DISCRETE_COLUMNS = [
     "QTDGESTANT",
     "QTDPARTNOR",
     "QTDPARTCES",
-    "ANO", # nao sei se eu quero indicar espectro?
+    "ANO",  # nao sei se eu quero indicar espectro?
 ]
 
 # # SERIESCMAE --> "serie da mae" (tipo do ensino fundamental?)
@@ -95,8 +94,8 @@ DISCRETE_COLUMNS = [
 # quer saber eu lido com aquilo depois,
 # por enquanto só classifica mesmo.
 
-    # # devia ter deixado aqui as que eu to incerto e fui enfiando no drop -.-
-    # "SERIESCMAE", # checar em relação a outra coluna la qq acontece (tem um comentario no notebook)
+# # devia ter deixado aqui as que eu to incerto e fui enfiando no drop -.-
+# "SERIESCMAE", # checar em relação a outra coluna la qq acontece (tem um comentario no notebook)
 
 # creating now the see later cols: (incomplete, see all columns)
 # "SERIESCMAE", # checar em relação a outra coluna la qq acontece (tem um comentario no notebook)
@@ -107,16 +106,15 @@ CATEGORIC_COLUMNS = [
 ]
 
 # se eu nao encontrar uma categoria pra cada
-# NAN value em cada categoria, 
+# NAN value em cada categoria,
 # eu posso inventar um padrao de precfixo de nome?
 
 NUMERIC_COLUMNS = [
     *CONTINUOUS_COLUMNS,
-    *DISCRETE_COLUMNS, # puts mas discrete tem intersecção com categoric.
-                        # se pah eu explodo essa lsita de NUMERIC.
+    *DISCRETE_COLUMNS,  # puts mas discrete tem intersecção com categoric.
+    # se pah eu explodo essa lsita de NUMERIC.
 ]
 
 TARGET_COLUMN = ["y"]
 
-ALL_COLUMNS = [*CATEGORIC_COLUMNS, *NUMERIC_COLUMNS, *TARGET_COLUMN ] 
-
+ALL_COLUMNS = [*CATEGORIC_COLUMNS, *NUMERIC_COLUMNS, *TARGET_COLUMN]

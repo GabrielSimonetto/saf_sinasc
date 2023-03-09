@@ -22,5 +22,6 @@ pd.set_option('display.max_columns', None)
 # def test():
 # def train_test():
 
+# TODO: allow user input on num_samples
 
-default_run_models()
+result = default_run_models(num_samples=1)

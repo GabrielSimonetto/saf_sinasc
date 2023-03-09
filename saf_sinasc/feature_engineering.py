@@ -398,16 +398,19 @@ def pre_process_enrich_columns(df):
 
 
 def feature_engineering(df):
+    def is_equal(df, col1, col2):
+        return df.assign(**{f"is_equal_{col1}_and_{col2}":
+                            lambda df: (df.CODMUNRES ==
+                                        df.CODMUNNASC).astype(int)
+                            })
+
     print(f"feature_engineering: df shape: {df.shape}")
 
-    df = df.assign(
-        equal_CODMUNRES_and_CODMUNNASC=(
-            df.CODMUNRES == df.CODMUNNASC).astype(int),
-        equal_CODMUNRES_and_CODMUNNATU=(
-            df.CODMUNRES == df.CODMUNNATU).astype(int),
-        equal_CODMUNNASC_and_CODMUNNATU=(
-            df.CODMUNNASC == df.CODMUNNATU).astype(int),
-    )
+    df = (df
+          .pipe(is_equal, col1="CODMUNRES", col2="CODMUNNASC")
+          .pipe(is_equal, col1="CODMUNRES", col2="CODMUNNATU")
+          .pipe(is_equal, col1="CODMUNNASC", col2="CODMUNNATU")
+          )
 
     # TODO: might make logging a responsability from the main function later
     print(f"feature_engineering: df shape: {df.shape}")
@@ -453,11 +456,11 @@ def preprocess_imputation(df):
 def drop_columns(df):
     """
     Legenda:
-    ND - Nao estão na Documentação
+    ND - Não estão na Documentação
     NAN - Muitos valores NAN
     CR(col) - Coluna Redundante com outra coluna (col)
-    IND - Informação não definida (nao sei pra que serve)
-    IL - Informação Limitada: 
+    IND - Informação Não Definida
+    IL - Informação Limitada:
             ex: coluna com só um valor,
               : coluna sem valor semantico (codigos de cartorio)
 
@@ -592,7 +595,7 @@ def get_dummies(df):
         "TPNASCASSI",
         "TPFUNCRESP",
         "TPDOCRESP",
-        "TPROBSON",  # ver aquele link la
+        "TPROBSON",  # TODO ver aquele link la
         # https://www.arca.fiocruz.br/bitstream/icict/29751/2/CLASSIFICA%C3%87%C3%83O%20DE%20ROBSON.pdf
         "ESTADO",
     ]
