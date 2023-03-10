@@ -1,7 +1,11 @@
 from pathlib import Path
 
+# TODO: uppercase all the paths
+# TODO: I need to inherit these in the scripts folder maybe
+
 DATAPATH = Path(__file__).resolve().parent.parent.joinpath("data")
 compilations_path = DATAPATH/"compilations"
+EVALUATORS_PATH = DATAPATH/"evaluators"
 sample_lists_path = compilations_path/"sample_lists"  # TODO: Deprecated?
 SAMPLES_PATH = compilations_path/"samples"  # TODO: make everyone uppercase?
 by_state_path = compilations_path/"by_state"

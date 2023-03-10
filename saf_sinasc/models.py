@@ -1,11 +1,12 @@
-
+import os
+from saf_sinasc.config import SAMPLES_PATH, METRICS, EVALUATORS_PATH
+from saf_sinasc.feature_engineering import full_pipeline
+from joblib import dump, load
 from statistics import mean, median, stdev
 from xgboost import XGBClassifier
-from sklearn.model_selection import cross_val_score, cross_validate
+from sklearn.model_selection import cross_validate
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
-from saf_sinasc.feature_engineering import full_pipeline
-from saf_sinasc.config import SAMPLES_PATH, METRICS
 
 import pandas as pd
 pd.set_option('display.max_rows', None)
@@ -86,8 +87,19 @@ class ModelEvaluator:
                 print(
                     f"{self.name:>4} {metric:>8}  stdev: {stdev(self.results[metric]):.2f}".ljust(50))
 
+    def save(self, data_version_path):
+        path = EVALUATORS_PATH / data_version_path / \
+            f'model_evaluator_{self.name}.joblib'
 
-def default_run_models(num_samples=5):
+        os.makedirs(path.parent, exist_ok=True)
+
+        dump(self, path)
+
+    def load(file):
+        return load(file)
+
+
+def default_run_models(num_samples=5, save=False):
     dt = ModelEvaluator("DT", DecisionTreeClassifier(random_state=0))
     rf = ModelEvaluator("RF", RandomForestClassifier(random_state=0))
     xgb = ModelEvaluator("XGB", XGBClassifier(random_state=0,
@@ -97,9 +109,31 @@ def default_run_models(num_samples=5):
                                               objective='binary:logistic'
                                               ))
 
-    return run_models(
+    evaluators = run_models(
         [dt, rf, xgb], num_samples
     )
+
+    if save:
+        save_model_evaluators(evaluators)
+
+    return evaluators
+
+
+def save_model_evaluators(model_evaluators, data_version=None):
+    """ Saves all model_evaluators inside `{EVALUATORS_PATH}/{data_version_path}/{name for name in model_names}.joblib`
+
+    `data_version_path` intends to retain sequentiality between data versions,
+    besides using suffix 0 for user inputted names, and 1 for versions without a name assigned to them"""
+
+    suffix = '0' if data_version else '1'
+
+    num_files = len([file for file in os.listdir(
+        EVALUATORS_PATH) if file.startswith(suffix)])
+    data_version_path = f"{suffix}{num_files:03d}_{data_version}".strip(
+        "_None")
+
+    for evaluator in model_evaluators:
+        evaluator.save(data_version_path)
 
 
 def run_models(models, num_samples=5):

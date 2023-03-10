@@ -569,7 +569,7 @@ scikit-learn = ["scikit-learn"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "c1aa31b476a289fbee4e6091b5bd52c36d09b7fda6ae39fa663c28c8ad01ca02"
+content-hash = "6a1c9565070189838ea39d705ec73dc3a7ba49703ebd92f24ecc2026b78bcf38"
 
 [metadata.files]
 appnope = [
