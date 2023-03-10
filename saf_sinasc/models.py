@@ -19,17 +19,19 @@ pd.set_option('display.max_columns', None)
 # TODO: I can use "seed" here for congruency, but here it is just a version (seed_version? version_seed?)
 # sample_paths = [f"data/compilations/samples/5x_neutral_entries_{seed}.csv" for seed in range(5)]
 
-class Model:
+class ModelEvaluator:
     def __init__(self, name, model):
         self.name = name
         self.model = model
         self.results = {metric: [] for metric in METRICS}
+        self.training_columns = []
+        self.feature_importances = []
 
     def __str__(self):
-        return f"Model({self.name})"
+        return f"ModelEvaluator({self.name})"
 
     def __repr__(self):
-        return f"Model({self.name})"
+        return f"ModelEvaluator({self.name})"
 
     def run(self, X, y):
         scores = self.take_metrics(X, y)
@@ -39,7 +41,16 @@ class Model:
         for metric in METRICS:
             self.results[metric].append(scores[metric])
 
-        # self.results.append(score)
+        # TODO: this should be checked later if it is the best approach for getting a fitted model
+        #   right now, sine take_   metrics only uses cross validation
+        #   we don't have access to a fitted model in order to get feature_importances,
+        #   so, this is costly and probably there's a better way to get a fitted model out of the CV process
+
+        # TODO: also, there is no guarantee that every model works with a feature_importances basis
+        #   this should be somewhat checked or at least asserted.
+        self.training_columns = X.columns
+        self.model.fit(X, y)
+        self.feature_importances.append(self.model.feature_importances_)
 
     def show_results(self):
         # TODO: precision formatting should be handled only once, instead of take_metrics everywhere
@@ -49,6 +60,7 @@ class Model:
         for metric in METRICS:
             print(
                 f"{self.name:>4} {metric:>8}: {[ '%.2f' % num for num in self.results[metric] ]}".ljust(50))
+        print()
 
     def take_metrics(self, X, y, metrics=METRICS):
         # sklearn.metrics.roc_auc_score(y_true, y_score)
@@ -66,24 +78,24 @@ class Model:
         print()
         for metric in METRICS:
             print(
-                f"  mean {self.name:>4} {metric:>8}: {mean(self.results[metric]):.2f}".ljust(50))
+                f"{self.name:>4} {metric:>8}   mean: {mean(self.results[metric]):.2f}".ljust(50))
             print(
-                f"median {self.name:>4} {metric:>8}: {median(self.results[metric]):.2f}".ljust(50))
+                f"{self.name:>4} {metric:>8} median: {median(self.results[metric]):.2f}".ljust(50))
 
             if len(self.results[metric]) > 1:
                 print(
-                    f" stdev {self.name:>4} {metric:>8}: {stdev(self.results[metric]):.2f}".ljust(50))
+                    f"{self.name:>4} {metric:>8}  stdev: {stdev(self.results[metric]):.2f}".ljust(50))
 
 
 def default_run_models(num_samples=5):
-    dt = Model("DT", DecisionTreeClassifier(random_state=0))
-    rf = Model("RF", RandomForestClassifier(random_state=0))
-    xgb = Model("XGB", XGBClassifier(random_state=0,
-                                     n_estimators=2,
-                                     max_depth=2,
-                                     learning_rate=1,
-                                     objective='binary:logistic'
-                                     ))
+    dt = ModelEvaluator("DT", DecisionTreeClassifier(random_state=0))
+    rf = ModelEvaluator("RF", RandomForestClassifier(random_state=0))
+    xgb = ModelEvaluator("XGB", XGBClassifier(random_state=0,
+                                              n_estimators=2,
+                                              max_depth=2,
+                                              learning_rate=1,
+                                              objective='binary:logistic'
+                                              ))
 
     return run_models(
         [dt, rf, xgb], num_samples
