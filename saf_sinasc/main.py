@@ -1,5 +1,6 @@
 # Meant to be run with `ipython -i` for exploration
 
+import time
 from saf_sinasc.models import default_run_models
 
 import pandas as pd
@@ -24,4 +25,9 @@ pd.set_option('display.max_columns', None)
 
 # TODO: allow user input on num_samples
 
-result = default_run_models(num_samples=1)
+start_time = time.time()
+result = default_run_models(num_samples=2, save=True)
+end_time = time.time()
+elapsed_time = end_time - start_time
+
+print(f"Elapsed time: {elapsed_time:.2f} seconds")

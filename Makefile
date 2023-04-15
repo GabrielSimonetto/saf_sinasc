@@ -11,3 +11,14 @@ run:
 
 irun:
 	poetry run ipython -i saf_sinasc/main.py
+
+model_graphs:
+	poetry run python saf_sinasc/scripts/create_model_graphs.py --data_version=$(data_version)
+
+data_graphs:
+	poetry run python saf_sinasc/scripts/create_data_graphs.py
+
+missing_data_report:
+	poetry run python saf_sinasc/scripts/create_missing_data_report.py
+
+all_graphs: model_graphs data_graphs

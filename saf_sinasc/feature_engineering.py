@@ -1,11 +1,22 @@
 import pandas as pd
+import numpy as np
 
 from saf_sinasc.config import compilations_path
 
 # Is there a convention name for this?
 
 
-def full_pipeline(sample_path):
+def basic_pipeline(sample_path):
+    """Used for EDAS which count on not having overly processed data"""
+
+    return (
+        load_negative_and_positive_df(sample_path)
+        .pipe(drop_columns)
+        .pipe(ensure_dtypes)
+    )
+
+
+def full_pipeline(sample_path, get_features=True, get_dummies_bool=True):
     """ full_pipeline
 
     pre_process_enrich_columns targets categorical columns
@@ -13,13 +24,11 @@ def full_pipeline(sample_path):
     """
 
     return (
-        load_negative_and_positive_df(sample_path)
-        .pipe(drop_columns)
-        .pipe(ensure_dtypes)
+        basic_pipeline(sample_path)
         .pipe(pre_process_enrich_columns)
         .pipe(preprocess_imputation)
-        .pipe(feature_engineering)
-        .pipe(get_dummies)
+        .pipe(lambda df: feature_engineering(df) if get_features else df)
+        .pipe(lambda df: get_dummies(df) if get_dummies_bool else df)
     )
 
 
@@ -58,7 +67,14 @@ def ensure_dtypes(df):
 
 
 def treat_nan_and_map_values(df, col, col_map, nan_cat=9.0):
-    return df.assign(**{col: lambda df: pd.to_numeric(df[col]).fillna(nan_cat).map(col_map)})
+    return (
+        df.assign(**{col: lambda df: pd.to_numeric(df[col], errors='coerce')
+                     # force all values not in the keyset into nan before treatment
+                     .where(df[col].isin(col_map.keys()), np.nan)
+                     .fillna(nan_cat)
+                     .map(col_map)
+                     })
+    )
 
 
 def enrich_LONASC(df):
@@ -476,7 +492,7 @@ def drop_columns(df):
 
     DTRECEBIM: IL
     DIFDATA: IL
-    DTRECORIG : IND
+    DTRECORIG : IND -- rechecar
     DTRECORIGA: IND
 
     DTNASCMAE: CR(IDADEMAE)
@@ -493,6 +509,11 @@ def drop_columns(df):
     # ambas criadas por nós
     ESTADO_DF: CR(ESTADO),
     ANO_DF: CR(ANO),
+
+    # Outras colunas acessórios que serão removidas
+    Unnamed: 0.1
+    Unnamed: 0
+    contador
 
     # Menção honrosa de colunas que VAO ser removidas:
         "DTNASC", # como particionar? verao inverno primavera outono?
@@ -556,6 +577,9 @@ def drop_columns(df):
         # "CODMUNNATU", # might be uncommented later, but we need it for feature creation
         "ESTADO_DF",
         "ANO_DF",
+        "Unnamed: 0.1",
+        "Unnamed: 0",
+        "contador",
     ]
 
     output = df.drop(

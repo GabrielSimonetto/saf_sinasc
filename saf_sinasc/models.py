@@ -64,15 +64,8 @@ class ModelEvaluator:
         print()
 
     def take_metrics(self, X, y, metrics=METRICS):
-        # sklearn.metrics.roc_auc_score(y_true, y_score)
-        # return cross_val_score(self.model, X, y, cv=10, scoring='f1').mean()
-
         assert len(METRICS) > 1, "Needs functionality for only one metric"
-        # TODO: if > 2 metrics, cross_validate produces test_{metric} names
-        #       if ==1 ; it simplifies to test_score, which breaks the current code.
-
         cv_results = cross_validate(self.model, X, y, cv=10, scoring=metrics)
-
         return {k.lstrip('test_'): v.mean() for k, v in cv_results.items() if k.startswith('test_')}
 
     def aggregate_results(self):
@@ -91,8 +84,7 @@ class ModelEvaluator:
         path = EVALUATORS_PATH / data_version_path / \
             f'model_evaluator_{self.name}.joblib'
 
-        os.makedirs(path.parent, exist_ok=True)
-
+        path.parent.mkdir(parents=True, exist_ok=True)
         dump(self, path)
 
     def load(file):
