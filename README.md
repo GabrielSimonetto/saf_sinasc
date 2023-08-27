@@ -1,9 +1,3 @@
 # saf_sinasc
 
-TODO
-
-# Creating the samples
-
-Run `create_all_samples.sh`, it assumes that you already have AQUELES DADO, em `data/compilations/by_state`
-
-(isso aqui vai virar um buraco de minhoca gigantesco, deixar publico todas as formas como eu fiz tudo isso)
+Nesse repositório está todo o codigo usado no trabalho [Estudo de possíveis discriminantes de TEAF utilizando dados do DATASUS](https://repositorio.ufsc.br/bitstream/handle/123456789/248927/TCC2___Gabriel_Simonetto___Grellert_pdf_a.pdf?sequence=1&isAllowed=y)
