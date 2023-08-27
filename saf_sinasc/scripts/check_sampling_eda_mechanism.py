@@ -41,7 +41,6 @@ def count_ano_lines(path, ano):
     return count_int
 
 
-# # TODO: This ignores a single xlsx, intentionally
 iterator = iter(glob(f"{BY_STATE_PATH}/*.csv", recursive=True))
 
 # ipdb.set_trace()

@@ -17,7 +17,7 @@ def basic_pipeline(sample_path):
 
 
 def full_pipeline(sample_path, get_features=True, get_dummies_bool=True):
-    """ full_pipeline
+    """full_pipeline
 
     pre_process_enrich_columns targets categorical columns
     preprocess_imputation targets numerical columns
@@ -28,6 +28,7 @@ def full_pipeline(sample_path, get_features=True, get_dummies_bool=True):
         .pipe(pre_process_enrich_columns)
         .pipe(preprocess_imputation)
         .pipe(lambda df: feature_engineering(df) if get_features else df)
+        # .pipe(lambda df: print(df.columns))
         .pipe(lambda df: get_dummies(df) if get_dummies_bool else df)
     )
 
@@ -36,24 +37,19 @@ def load_negative_and_positive_df(neutral_path):
     # TODO: hmm parameterizing neutral_path maybe implies parameterizing positives_path aswell.
     # neutral_path = compilations_path/"shuf_5x_01.csv"
 
-    # Even more ghosts, at this point who knows if the neutral sample has the same origin as positives path
-    positives_path = compilations_path / \
-        "only_positives_for_q86_and_q870_between_2010_and_2019.csv"
+    positives_path = (
+        compilations_path / "only_positives_for_q86_and_q870_between_2010_and_2019.csv"
+    )
 
-    # # TODO
-    # assert False, "Descobrindo como diabo coercionar isso em tempo de leitura"
-    # # https://stackoverflow.com/questions/60553469/pandas-coerce-errors-while-reading-csv
-    #
-    # # fixed currently by ensure_dtypes()
     neutral_df = pd.read_csv(neutral_path)
     positives_df = pd.read_csv(positives_path)
 
-    neutral_df['y'] = 0
-    positives_df['y'] = 1
+    neutral_df["y"] = 0
+    positives_df["y"] = 1
 
     print(
         f"positives_df.shape: {positives_df.shape}\n",
-        f"neutral_df.shape: {neutral_df.shape}"
+        f"neutral_df.shape: {neutral_df.shape}",
     )
 
     return pd.concat([positives_df, neutral_df])
@@ -67,13 +63,14 @@ def ensure_dtypes(df):
 
 
 def treat_nan_and_map_values(df, col, col_map, nan_cat=9.0):
-    return (
-        df.assign(**{col: lambda df: pd.to_numeric(df[col], errors='coerce')
-                     # force all values not in the keyset into nan before treatment
-                     .where(df[col].isin(col_map.keys()), np.nan)
-                     .fillna(nan_cat)
-                     .map(col_map)
-                     })
+    return df.assign(
+        **{
+            col: lambda df: pd.to_numeric(df[col], errors="coerce")
+            # force all values not in the keyset into nan before treatment
+            .where(df[col].isin(col_map.keys()), np.nan)
+            .fillna(nan_cat)
+            .map(col_map)
+        }
     )
 
 
@@ -95,12 +92,12 @@ def enrich_ESTCIVMAE(df):
     col = "ESTCIVMAE"
     nan_cat = 9.0
     ESTCIVMAE_map = {
-        1: 'Solteiro',
-        2: 'Casado',
-        3: 'Viúvo',
-        4: 'Separado Judic./Divorciado',
-        5: 'União consensual',
-        9: 'Ignorado',
+        1: "Solteiro",
+        2: "Casado",
+        3: "Viúvo",
+        4: "Separado Judic./Divorciado",
+        5: "União consensual",
+        9: "Ignorado",
     }
 
     return treat_nan_and_map_values(df, col, ESTCIVMAE_map, nan_cat)
@@ -125,16 +122,16 @@ def enrich_ESCMAEAGR1(df):
     col = "ESCMAEAGR1"
     nan_cat = 9.0
     ESCMAEAGR1_map = {
-        0:  "Sem Escolaridade",
-        1:  "Fundamental I Incompleto",
-        2:  "Fundamental I Completo",
-        3:  "Fundamental II Incompleto",
-        4:  "Fundamental II Completo",
-        5:  "Ensino Médio Incompleto",
-        6:  "Ensino Médio Completo",
-        7:  "Superior Incompleto",
-        8:  "Superior Completo",
-        9:  "Ignorado",
+        0: "Sem Escolaridade",
+        1: "Fundamental I Incompleto",
+        2: "Fundamental I Completo",
+        3: "Fundamental II Incompleto",
+        4: "Fundamental II Completo",
+        5: "Ensino Médio Incompleto",
+        6: "Ensino Médio Completo",
+        7: "Superior Incompleto",
+        8: "Superior Completo",
+        9: "Ignorado",
         10: "Fundamental I Incompleto ou Inespecífico",
         11: "Fundamental II Incompleto ou Inespecífico",
         12: "Ensino Médio Incompleto ou Inespecífico",
@@ -209,9 +206,12 @@ def enrich_SEXO(df):
     }
 
     # It's better to convert to numeric just to be type safe
-    df = df.assign(**{
-        "SEXO": lambda df: pd.to_numeric(df["SEXO"].replace({"M": 1, "F": 2}), errors='coerce')
-    }
+    df = df.assign(
+        **{
+            "SEXO": lambda df: pd.to_numeric(
+                df["SEXO"].replace({"M": 1, "F": 2}), errors="coerce"
+            )
+        }
     )
 
     return treat_nan_and_map_values(df, col, SEXO_map, nan_cat)
@@ -388,8 +388,7 @@ def enrich_TPROBSON(df):
 def pre_process_enrich_columns(df):
     """Targets categorical values"""
     return (
-        df
-        .pipe(enrich_LONASC)
+        df.pipe(enrich_LONASC)
         .pipe(enrich_ESTCIVMAE)
         .pipe(enrich_ESCMAE)
         .pipe(enrich_ESCMAEAGR1)
@@ -415,18 +414,27 @@ def pre_process_enrich_columns(df):
 
 def feature_engineering(df):
     def is_equal(df, col1, col2):
-        return df.assign(**{f"is_equal_{col1}_and_{col2}":
-                            lambda df: (df.CODMUNRES ==
-                                        df.CODMUNNASC).astype(int)
-                            })
+        return df.assign(
+            **{
+                f"is_equal_{col1}_and_{col2}": lambda df: (df[col1] == df[col2]).astype(
+                    int
+                )
+            }
+        )
+
+    def is_missing(df, col1):
+        return df.assign(
+            **{f"is_missing_{col1}": lambda df: (df[col1].isna().astype(int))}
+        )
 
     print(f"feature_engineering: df shape: {df.shape}")
 
-    df = (df
-          .pipe(is_equal, col1="CODMUNRES", col2="CODMUNNASC")
-          .pipe(is_equal, col1="CODMUNRES", col2="CODMUNNATU")
-          .pipe(is_equal, col1="CODMUNNASC", col2="CODMUNNATU")
-          )
+    df = (
+        df.pipe(is_equal, col1="CODMUNRES", col2="CODMUNNASC")
+        .pipe(is_equal, col1="CODMUNRES", col2="CODMUNNATU")
+        .pipe(is_equal, col1="CODMUNNASC", col2="CODMUNNATU")
+        .pipe(is_missing, col1="IDADEPAI")
+    )
 
     # TODO: might make logging a responsability from the main function later
     print(f"feature_engineering: df shape: {df.shape}")
@@ -435,24 +443,18 @@ def feature_engineering(df):
 
 
 def preprocess_imputation(df):
-    # Depends on: ver se eu vou precisar inputação mesmo,
-    #     provavelmente vou dar uma chance pra XGBOOST eu acho
-    # TODO: tem coisa aqui que precisa fazer direito
-    #     https://www.youtube.com/watch?v=m_qKhnaYZlc
-
-    # TODO: agora sim eu posso acertar o config e passar a lista toda aqui maybe?
     selection_list = [
         "CODESTAB",
         "CODMUNNASC",
-        "IDADEMAE",  # TODO mudar
+        "IDADEMAE",
         "CODOCUPMAE",
         "QTDFILVIVO",
         "QTDFILMORT",
         "CODMUNRES",
         "CODMUNNATU",
-        "APGAR1",  # TODO mudar
-        "APGAR5",  # TODO mudar
-        "PESO",  # TODO mudar
+        "APGAR1",
+        "APGAR5",
+        "PESO",
         "SERIESCMAE",
         "QTDGESTANT",
         "QTDPARTNOR",
@@ -461,7 +463,7 @@ def preprocess_imputation(df):
         "SEMAGESTAC",
         "CONSPRENAT",
         "MESPRENAT",
-        "ESCMAE2010",  # acho que isso aqui devia ser categorico
+        "ESCMAE2010",
         "CODUFNATU",
         "CODMUNCART",
     ]
@@ -584,7 +586,7 @@ def drop_columns(df):
 
     output = df.drop(
         columns=columns,
-        errors="ignore"  # if a column does not exist keep removing the others
+        errors="ignore",  # if a column does not exist keep removing the others
     )
 
     print(
@@ -597,12 +599,11 @@ def drop_columns(df):
 
 
 def get_dummies(df):
-
     ENRICH_CAT_COLUMNS = [
         "LOCNASC",
         "ESTCIVMAE",
         "ESCMAE",
-        "ESCMAEAGR1",  # nao achado em algumas iterações?
+        "ESCMAEAGR1",
         "GESTACAO",
         "GRAVIDEZ",
         "PARTO",
@@ -619,22 +620,10 @@ def get_dummies(df):
         "TPNASCASSI",
         "TPFUNCRESP",
         "TPDOCRESP",
-        "TPROBSON",  # TODO ver aquele link la
+        "TPROBSON",
         # https://www.arca.fiocruz.br/bitstream/icict/29751/2/CLASSIFICA%C3%87%C3%83O%20DE%20ROBSON.pdf
         "ESTADO",
     ]
     DUMMIES_LIST = ENRICH_CAT_COLUMNS
 
     return pd.get_dummies(df, columns=DUMMIES_LIST)
-
-
-# TODO: abort one of either: (df.CODMUNRES == df.CODMUNNASC).value_counts()
-# TODO: abort one of either: (df.CODMUNRES == df.CODMUNNATU).value_counts() ## NATURALMAE eh similar?
-
-# TODO: check if all columns are met on the sum of the lists (no intersections aswell)
-
-# TODO: how to deal with future different columns?
-# TODO: clear all useless comments
-
-# TODO: descobrir um jeito mais simples de documentar essas meta informações das colunas?
-#        da pra ja ir escrevendo no artigo mesmo acho

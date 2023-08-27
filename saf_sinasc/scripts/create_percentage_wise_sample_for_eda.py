@@ -29,22 +29,24 @@ assert lines_per_file_path.exists()
 
 SEED = 0
 PERCENTAGE = 0.02
-SAMPLE_PATH = SCRIPTS_OUTPUT_PATH / \
-    f"eda_sample_stratified_on_{int(PERCENTAGE*100)}_percentage.csv"
+SAMPLE_PATH = (
+    SCRIPTS_OUTPUT_PATH
+    / f"eda_sample_stratified_on_{int(PERCENTAGE*100)}_percentage.csv"
+)
 
 # TODO: come on linter lint stuff
 
 
 def create_header(path, output_file=SAMPLE_PATH):
-    with open(output_file, 'w') as f:
-        subprocess.run(["head", "-n", "1",  path], stdout=f)
+    with open(output_file, "w") as f:
+        subprocess.run(["head", "-n", "1", path], stdout=f)
 
 
 def find_ano_column_position(path):
-    header = subprocess.check_output(
-        ["head", "-n", "1", path]).decode().strip()
+    header = subprocess.check_output(["head", "-n", "1", path]).decode().strip()
 
     return header.split(",").index("ANO")
+
 
 # def get_ano_lines(path, ano):
 #     ano_pos = find_ano_column_position(path)
@@ -60,7 +62,9 @@ def find_ano_column_position(path):
 #     return lines
 
 
-def concat_sample_data(path, lines_per_file, output_file=SAMPLE_PATH, seed=SEED, percentage=PERCENTAGE):
+def concat_sample_data(
+    path, lines_per_file, output_file=SAMPLE_PATH, seed=SEED, percentage=PERCENTAGE
+):
     def get_sample_size(lines_per_file, ano, state, percentage):
         """
         ano: '2015',
@@ -77,7 +81,8 @@ def concat_sample_data(path, lines_per_file, output_file=SAMPLE_PATH, seed=SEED,
         sample_size = int(lines * percentage)
 
         print(
-            f"Read {path}, ano: {ano}, lines: {lines} , sample size of: {sample_size}")
+            f"Read {path}, ano: {ano}, lines: {lines} , sample size of: {sample_size}"
+        )
         return sample_size
 
     for ano in range(2010, 2020):
@@ -86,20 +91,18 @@ def concat_sample_data(path, lines_per_file, output_file=SAMPLE_PATH, seed=SEED,
         sample_size = get_sample_size(lines_per_file, ano, state, percentage)
 
         awk = subprocess.Popen(
-            ["awk", "-F", ',', f'${ano_pos} == {ano}', path],
-            stdout=subprocess.PIPE)
+            ["awk", "-F", ",", f"${ano_pos} == {ano}", path], stdout=subprocess.PIPE
+        )
 
-        with open(output_file, 'a+') as f:
+        with open(output_file, "a+") as f:
             shuf = subprocess.Popen(
-                ["shuf",
-                    "-n", str(sample_size)],
-                stdin=awk.stdout,
-                stdout=f)
+                ["shuf", "-n", str(sample_size)], stdin=awk.stdout, stdout=f
+            )
             awk.stdout.close()
             shuf.wait()
 
 
-with open(lines_per_file_path, 'r') as f:
+with open(lines_per_file_path, "r") as f:
     lines_per_file = json.load(f)
 
 # # TODO: This ignores a single xlsx, intentionally
@@ -120,29 +123,14 @@ print("Time elapsed: ", end_time - start_time, "seconds")
 
 
 # Checking stuff
-expected_line_count = sum(int(v2 * PERCENTAGE) for v1 in lines_per_file.values()
-                          for v2 in v1.values()) + 1
+expected_line_count = (
+    sum(int(v2 * PERCENTAGE) for v1 in lines_per_file.values() for v2 in v1.values())
+    + 1
+)
 
 actual_line_count = subprocess.run(
-    ["wc", "-l",  SAMPLE_PATH], capture_output=True, text=True).stdout.split(" ")[0]
+    ["wc", "-l", SAMPLE_PATH], capture_output=True, text=True
+).stdout.split(" ")[0]
 
 print(expected_line_count)
 print(actual_line_count)
-# # TODO: Ignored while xlsx is not fixed
-# assert (expected_line_count == int(actual_line_count))
-
-# TODO: tem 2 grandes coisas pra resolver nesse script ainda:
-# 1) eu preciso appendar os positivos tambem
-#       R: nao da, o header eh diferente
-#           vai ter que ser no pandas essa parte.
-#
-#   meu deus eu nunca fiz isso????
-#   ta aparentemente eu preciso chegar se precisa ter o positives junto?
-#   nao po mas o....
-#       o criador de graficos sabe disso,
-#
-#   [ ] - Começar a escrever sobre essas assumptions em algum lugar,
-#           dps tem que aparecer no relatorio isso somehow
-#
-# 2) eh BEM relevante ja ter seed nisso aqui, da pra ver como funca
-#           (e ai eu ja posso ver como essas seed funciona maybe)

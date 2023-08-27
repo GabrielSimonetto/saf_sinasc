@@ -36,6 +36,12 @@ assert SCRIPTS_OUTPUT_PATH.exists()
 POSITIVES_PATH = COMPILATIONS_PATH / \
     "only_positives_for_q86_and_q870_between_2010_and_2019.csv"
 
+df = load_negative_and_positive_df(NEGATIVES_PATH)
+output = df.isna().mean()
+
+with open(SCRIPTS_OUTPUT_PATH / 'missing_data_report.txt', 'w') as f:
+    f.write(output.sort_values(ascending=False).to_string())
+
 # # TODO: bad name, now used as input?
 # NEGATIVES_PATH = SCRIPTS_OUTPUT_PATH / \
 #     "eda_sample_stratified_on_2_percentage.csv"
@@ -47,19 +53,19 @@ POSITIVES_PATH = COMPILATIONS_PATH / \
 # with open(SCRIPTS_OUTPUT_PATH / 'missing_data_report.txt', 'w') as f:
 #     f.write(output.sort_values(ascending=False).to_string())
 
-pd.set_option('display.max_rows', None)
+# pd.set_option('display.max_rows', None)
 
-for i in range(5):
-    print(f"Results for 5x_neutral_entries_{i}.csv")
-    NEGATIVES_PATH = COMPILATIONS_PATH / "samples" / \
-        f"5x_neutral_entries_{i}.csv"
-    df = load_negative_and_positive_df(NEGATIVES_PATH)
-    output = df.isna().mean()
-    print(output.sort_values(ascending=False))
-    print()
-    print("=======================================================")
-    print()
+# for i in range(5):
+#     print(f"Results for 5x_neutral_entries_{i}.csv")
+#     NEGATIVES_PATH = COMPILATIONS_PATH / "samples" / \
+#         f"5x_neutral_entries_{i}.csv"
+#     df = load_negative_and_positive_df(NEGATIVES_PATH)
+#     output = df.isna().mean()
+#     print(output.sort_values(ascending=False))
+#     print()
+#     print("=======================================================")
+#     print()
 
 
-end_time = time.time()
-print("Time elapsed: ", end_time - start_time, "seconds")
+# end_time = time.time()
+# print("Time elapsed: ", end_time - start_time, "seconds")

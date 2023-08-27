@@ -4,24 +4,18 @@ from pathlib import Path
 # TODO: I need to inherit these in the scripts folder maybe
 
 DATAPATH = Path(__file__).resolve().parent.parent.joinpath("data")
-compilations_path = DATAPATH/"compilations"
-EVALUATORS_PATH = DATAPATH/"evaluators"
-sample_lists_path = compilations_path/"sample_lists"  # TODO: Deprecated?
-SAMPLES_PATH = compilations_path/"samples"  # TODO: make everyone uppercase?
-by_state_path = compilations_path/"by_state"
+compilations_path = DATAPATH / "compilations"
+EVALUATORS_PATH = DATAPATH / "evaluators"
+sample_lists_path = compilations_path / "sample_lists"  # TODO: Deprecated?
+SAMPLES_PATH = compilations_path / "samples"  # TODO: make everyone uppercase?
+by_state_path = compilations_path / "by_state"
 
-METRICS = ["f1", "roc_auc", "roc_curve"]
+SEEDS_FILE = Path(__file__).resolve().parent.joinpath("scripts").joinpath("seeds.txt")
+NUM_OF_SEEDS = 100  # TODO: ctrl+f ve se precisou usar
 
-# ESQUECE USAR ESSAS LISTAS NO CODIGO POR ENQUANTO
-#    Provavelmente eh mais saudavel eu criar elas conforme eu vejo
-#     o que acontece no codigo.
-#     deixa isso aqui soh como documentação por enquanto
-#  inclusive
-#    mesmo na epoca que eu tava trabalhando,
-#    eu ja nao tinha mais gostado do nome das classes
-#    pega papel e caneta e desenha todas as divisorias que vc vai precisar aqui, se precisar
+# METRICS = ["f1", "roc_auc", "roc_curve"]
+METRICS = ["f1", "roc_auc"]
 
-# pq isso tem esse nome?
 NON_ENRICH_COLUMNS = [
     "CODESTAB",
     "CODMUNNASC",
@@ -70,7 +64,6 @@ CONTINUOUS_COLUMNS = [
     "IDADEMAE",
     "IDADEPAI",
     "PESO",
-
     # ordinal
     "APGAR1",
     "APGAR5",
@@ -104,10 +97,7 @@ DISCRETE_COLUMNS = [
 # creating now the see later cols: (incomplete, see all columns)
 # "SERIESCMAE", # checar em relação a outra coluna la qq acontece (tem um comentario no notebook)
 
-CATEGORIC_COLUMNS = [
-    *NON_ENRICH_COLUMNS,
-    *ENRICH_CAT_COLUMNS
-]
+CATEGORIC_COLUMNS = [*NON_ENRICH_COLUMNS, *ENRICH_CAT_COLUMNS]
 
 # se eu nao encontrar uma categoria pra cada
 # NAN value em cada categoria,
