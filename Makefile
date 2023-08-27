@@ -22,3 +22,15 @@ missing_data_report:
 	poetry run python saf_sinasc/scripts/create_missing_data_report.py
 
 all_graphs: model_graphs data_graphs
+
+express_models:
+	poetry run python saf_sinasc/scripts/express_models.py
+
+metrics_table:
+	poetry run python create_report_metrics_tables.py
+
+final_columns_table:
+	poetry run python create_report_of_final_columns.py
+
+latex_tables: metrics_table final_columns_table
+	

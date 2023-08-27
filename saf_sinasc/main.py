@@ -4,8 +4,9 @@ import time
 from saf_sinasc.models import default_run_models
 
 import pandas as pd
-pd.set_option('display.max_rows', None)
-pd.set_option('display.max_columns', None)
+
+pd.set_option("display.max_rows", None)
+pd.set_option("display.max_columns", None)
 
 
 # TODO: remove ghosts, insert in a .env and make .sh and .py files use it.
@@ -26,7 +27,7 @@ pd.set_option('display.max_columns', None)
 # TODO: allow user input on num_samples
 
 start_time = time.time()
-result = default_run_models(num_samples=2, save=True)
+result = default_run_models(num_samples=100, save=True, use_seeds_file=True)
 end_time = time.time()
 elapsed_time = end_time - start_time
 

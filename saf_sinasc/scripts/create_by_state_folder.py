@@ -2,16 +2,16 @@ from pathlib import Path
 import glob
 import pandas as pd
 
-# assert False, """I have never ran this script,
-#     it's taken directly from a notebook on "tcc/notebooks"
-#     (not to be mistaken with tcc/saf_sinasc/notebooks)
+assert False, """I have never ran this script,
+    it's taken directly from a notebook on "tcc/notebooks"
+    (not to be mistaken with tcc/saf_sinasc/notebooks)
 
-#     I don't even know why I am documenting this,
-#         if you truly need this just know you are on your own
-#         god has abandoned you
+    I don't even know why I am documenting this,
+        if you truly need this just know you are on your own
+        god has abandoned you
 
-#     Test this in a safe place
-# """
+    Test this in a safe place
+"""
 
 
 DRIVE_PATH = Path("data")

@@ -10,7 +10,12 @@ sample_lists_path = compilations_path/"sample_lists"  # TODO: Deprecated?
 SAMPLES_PATH = compilations_path/"samples"  # TODO: make everyone uppercase?
 by_state_path = compilations_path/"by_state"
 
-METRICS = ["f1", "roc_auc", "roc_curve"]
+SEEDS_FILE = Path(__file__).resolve().parent.joinpath(
+    "scripts").joinpath("seeds.txt")
+NUM_OF_SEEDS = 100  # TODO: ctrl+f ve se precisou usar
+
+# METRICS = ["f1", "roc_auc", "roc_curve"]
+METRICS = ["f1", "roc_auc"]
 
 # ESQUECE USAR ESSAS LISTAS NO CODIGO POR ENQUANTO
 #    Provavelmente eh mais saudavel eu criar elas conforme eu vejo

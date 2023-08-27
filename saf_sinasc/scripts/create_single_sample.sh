@@ -37,9 +37,10 @@ then
       exit 1;    
 fi
 
-states_data="../data/compilations/by_state";
-output_path="../data/compilations/samples/5x_neutral_entries_$seed.csv"; # TODO: pad 2 zeros to the left
+states_data="../../data/compilations/by_state";
+output_path="../../data/compilations/samples/5x_neutral_entries_$seed.csv"; # TODO: pad 2 zeros to the left
 
+echo "Processing seed: $seed"
 
 # first one creates the file with the header
 # all of the other must concat into it with >>

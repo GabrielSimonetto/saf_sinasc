@@ -1,5 +1,14 @@
 # Mine
 data/compilations
+*.txt
+*.tex
+*.tgn
+*.ipynb
+*.csv
+*.json
+data/
+Sistema de Informa*
+*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

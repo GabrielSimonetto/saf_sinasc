@@ -28,6 +28,7 @@ def full_pipeline(sample_path, get_features=True, get_dummies_bool=True):
         .pipe(pre_process_enrich_columns)
         .pipe(preprocess_imputation)
         .pipe(lambda df: feature_engineering(df) if get_features else df)
+        # .pipe(lambda df: print(df.columns))
         .pipe(lambda df: get_dummies(df) if get_dummies_bool else df)
     )
 
@@ -414,10 +415,36 @@ def pre_process_enrich_columns(df):
 
 
 def feature_engineering(df):
+    # TODO: is_equal precisaria desconsiderar
+    # se as parada sao igual só pq são o valor da imputação
+    # ... mas isso parece meio dificil e chato e nao tao eficiente eu imagino
+    # ... de qualquer jeito, como eh booleano,
+    # eu inclusive precisaria criar a coluna "nao sei" aqui.
+    # soh que eu peguei a mediana como imputação entao eu nao posso soh negar a imputação aqui em tese
+    # ... entao eu teria que ter algum mecanismo pra carregar essa informação inclusive
+    # (CODMUNRES_foi_imputada) - ou seja nao tem nem o jeito certo de fazer isso
+    # trampo demais.
+
+    # TODO
+    # Poxa mas ai quando eu olho pra feature de idade pai isna
+    # ai eu ja fico vix
+    # e se eu vou dizer que ela deve ficar no relatorio... entao eu preciso usar ela aqui
+
+    # TODO MEU DEUS O QUE TA ACONTECENDO NESSA FUNÇÃO
+    #           tem que checar dps se esses treco tao funcionando mesmo
+    # TODO ta eu acho que o astype int ta susse,
+    #           mas eu tenho que garantir que os 2 sao do memso datatype,
+    #           senao vai dar xabu
+
     def is_equal(df, col1, col2):
         return df.assign(**{f"is_equal_{col1}_and_{col2}":
-                            lambda df: (df.CODMUNRES ==
-                                        df.CODMUNNASC).astype(int)
+                            lambda df: (df[col1] ==
+                                        df[col2]).astype(int)
+                            })
+
+    def is_missing(df, col1):
+        return df.assign(**{f"is_missing_{col1}":
+                            lambda df: (df[col1].isna().astype(int))
                             })
 
     print(f"feature_engineering: df shape: {df.shape}")
@@ -426,6 +453,7 @@ def feature_engineering(df):
           .pipe(is_equal, col1="CODMUNRES", col2="CODMUNNASC")
           .pipe(is_equal, col1="CODMUNRES", col2="CODMUNNATU")
           .pipe(is_equal, col1="CODMUNNASC", col2="CODMUNNATU")
+          .pipe(is_missing, col1="IDADEPAI")
           )
 
     # TODO: might make logging a responsability from the main function later
@@ -597,6 +625,9 @@ def drop_columns(df):
 
 
 def get_dummies(df):
+
+    # TODO eu preciso de algum assert pra ter certeza que isso bate com
+    # a etapa de enrich, toda aquela lista la emcima.
 
     ENRICH_CAT_COLUMNS = [
         "LOCNASC",
